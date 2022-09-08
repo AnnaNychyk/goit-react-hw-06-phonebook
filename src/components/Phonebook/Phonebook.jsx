@@ -1,62 +1,42 @@
-import { nanoid } from 'nanoid';
-import { useState, useEffect } from 'react';
+// import { nanoid } from 'nanoid';
+// import { useState, useEffect } from 'react';
 import ContactForm from './ContactForm/ContactForm';
 import ContactList from './ContactList/ContactList';
 import Filter from './Filter/Filter';
+import { useSelector, useDispatch } from 'react-redux';
+
+import { addContact, removeContact } from 'redux/contacts/contacts-actions';
+import { setFilter } from 'redux/filter/filter-actions';
+import { getFilter } from 'redux/filter/filter-selectors';
+import { gerFilteredContacts } from 'redux/contacts/contacts-selectors';
 
 const Phonebook = () => {
-  const [contacts, setContacts] = useState(() => {
-    return JSON.parse(window.localStorage.getItem('contacts')) ?? [];
-  });
-  const [filter, setFilter] = useState('');
+  const contacts = useSelector(gerFilteredContacts);
+  const filter = useSelector(getFilter);
 
-  useEffect(() => {
-    window.localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+  const dispatch = useDispatch();
 
-  const handleCreateContact = (name, number) => {
-    const isContactExist = contacts.some(
-      contact => contact.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (isContactExist) {
-      return alert(`${name} is already in contacts`);
-    }
-
-    const contact = {
-      id: nanoid(),
-      name: name,
-      number: number,
-    };
-
-    setContacts(prevState => [...prevState, contact]);
+  const onAddContact = payload => {
+    const action = addContact(payload);
+    dispatch(action);
   };
 
-  const handleRemoveContact = id => {
-    setContacts(contacts => contacts.filter(contact => contact.id !== id));
+  const onRemoveContact = payload => {
+    dispatch(removeContact(payload));
   };
 
-  const handleFilterContacts = () => {
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(filter.trim().toLowerCase())
-    );
-  };
-
-  const handleFilterChange = event => {
-    setFilter(event.currentTarget.value);
+  const onSetFilter = ({ target }) => {
+    dispatch(setFilter(target.value));
   };
 
   return (
     <div>
       <h1>Phonebook</h1>
-      <ContactForm onSubmit={handleCreateContact} />
+      <ContactForm onSubmit={onAddContact} />
 
       <h2>Contacts</h2>
-      <Filter value={filter} onChange={handleFilterChange} />
-      <ContactList
-        list={handleFilterContacts()}
-        onRemove={handleRemoveContact}
-      />
+      <Filter onChange={onSetFilter} value={filter} />
+      <ContactList onRemove={onRemoveContact} list={contacts} />
     </div>
   );
 };
