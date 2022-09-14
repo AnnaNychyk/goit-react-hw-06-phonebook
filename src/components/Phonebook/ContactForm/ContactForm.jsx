@@ -1,10 +1,15 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import styles from './ContactForm.module.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from 'redux/contacts/contacts-actions';
 
-const ContactForm = ({ onSubmit }) => {
+const ContactForm = () => {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
+  const contacts = useSelector(state => state.contacts);
+
+  const dispatch = useDispatch();
 
   const handleChange = event => {
     const { name, value } = event.currentTarget;
@@ -26,10 +31,43 @@ const ContactForm = ({ onSubmit }) => {
   const handleSubmit = event => {
     event.preventDefault();
 
-    onSubmit({ name, number });
+    const repeatedName = contacts.find(contact => {
+      return contact.name.toLowerCase() === name.toLowerCase();
+    });
+
+    const repeatedNumber = contacts.find(contact => {
+      return contact.number.toLowerCase() === number.toLowerCase();
+    });
+
+    if (repeatedName) {
+      alert(`${name} is already in contacts.`);
+      return;
+    }
+
+    if (repeatedNumber) {
+      alert(`${number} is already in contacts.`);
+      return;
+    }
+
+    dispatch(addContact({ name, number }));
 
     reset();
   };
+
+  // const handleOnSubmit = event => {
+  //   event.preventDefault();
+  //   const duplicationName = contacts.find(contact => {
+  //     return contact.name.toLowerCase() === name.toLowerCase();
+  //   });
+
+  //   if (duplicationName) {
+  //     alert(`${name} is already in contacts.`);
+  //     return;
+  //   }
+
+  //   dispatch(add_contact({ name, number }));
+  //   reset();
+  // };
 
   const reset = () => {
     setName('');
